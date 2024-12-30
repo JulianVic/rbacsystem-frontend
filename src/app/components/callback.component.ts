@@ -17,12 +17,15 @@ export class CallbackComponent implements OnInit {
 
   async ngOnInit(): Promise<void> {
     try {
-      await this.authService.tryLogin();
-      await this.authService.loadUserProfile();
-      this.router.navigate(['/']);
+      const success = await this.authService.tryLogin();
+      if (success) {
+        this.router.navigate(['/']);
+      } else {
+        this.error = 'Error de autenticación';
+      }
     } catch (error) {
+      console.error('Error en callback:', error);
       this.error = 'Error de autenticación';
-      console.error(error);
     } finally {
       this.loading = false;
     }

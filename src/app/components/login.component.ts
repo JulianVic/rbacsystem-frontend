@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { AuthService } from '../auth/auth.service';
+import { OperationsComponent } from './operations.component';
 
 @Component({
   selector: 'app-login',
@@ -9,9 +10,10 @@ import { AuthService } from '../auth/auth.service';
     </div>
 
     <ng-template #loggedIn>
-      <h2>Welcome, {{ userInfo?.name || 'Usuario' }}</h2>
+      <h2>Bienvenido, {{ userInfo?.name || 'Usuario' }}</h2>
       <p>Email: {{ userInfo?.email || 'No disponible' }}</p>
       <p>ID de Usuario: {{ userInfo?.sub || 'N/A' }}</p>
+      <app-operations></app-operations>
       <button (click)="logout()">Cerrar sesión</button>
     </ng-template>
   `,

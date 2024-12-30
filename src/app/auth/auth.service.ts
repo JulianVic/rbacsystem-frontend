@@ -10,18 +10,44 @@ export class AuthService {
 
   constructor(private oauthService: OAuthService) {
     this.oauthService.configure(authConfig);
-    this.oauthService.loadDiscoveryDocumentAndTryLogin();
+    this.oauthService.loadDiscoveryDocument();
+  }
+
+  async tryLogin(): Promise<boolean> {
+    try {
+      const loggedIn = await this.oauthService.tryLoginCodeFlow();
+      if (this.isAuthenticated()) {
+        await this.loadUserProfile();
+      }
+      return this.isAuthenticated();
+    } catch (error) {
+      console.error('Login error:', error);
+      return false;
+    }
   }
 
   async loadUserProfile(): Promise<any> {
-    if (!this.userProfile) {
-      this.userProfile = await this.oauthService.loadUserProfile();
+    try {
+      if (this.oauthService.hasValidAccessToken()) {
+        this.userProfile = await this.oauthService.loadUserProfile();
+        return this.userProfile;
+      }
+      return null;
+    } catch (error) {
+      console.error('Error loading user profile:', error);
+      return null;
     }
-    return this.userProfile;
   }
 
   getUserInfo(): any {
-    return this.userProfile || this.oauthService.getIdentityClaims();
+    if (this.userProfile) {
+      return this.userProfile.info || this.userProfile;
+    }
+    return this.oauthService.getIdentityClaims();
+  }
+
+  isAuthenticated(): boolean {
+    return this.oauthService.hasValidAccessToken();
   }
 
   login(): void {
@@ -30,14 +56,6 @@ export class AuthService {
 
   logout(): void {
     this.oauthService.logOut();
+    this.userProfile = null;
   }
-
-  isAuthenticated(): boolean {
-    return this.oauthService.hasValidAccessToken();
-  }
-
-  async tryLogin(): Promise<boolean> {
-    return await this.oauthService.loadDiscoveryDocumentAndTryLogin();
-  }
-  
 }
