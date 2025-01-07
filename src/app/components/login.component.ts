@@ -1,43 +1,18 @@
-import { Component, OnInit } from '@angular/core';
+import { Component } from '@angular/core';
 import { AuthService } from '../auth/auth.service';
-import { OperationsComponent } from './operations.component';
 
 @Component({
   selector: 'app-login',
   template: `
-    <div *ngIf="!isAuthenticated; else loggedIn">
-      <button (click)="login()">Login</button>
+    <div class="login-container">
+      <button (click)="login()">Login with ZITADEL</button>
     </div>
-
-    <ng-template #loggedIn>
-      <h2>Bienvenido, {{ userInfo?.name || 'Usuario' }}</h2>
-      <p>Email: {{ userInfo?.email || 'No disponible' }}</p>
-      <p>ID de Usuario: {{ userInfo?.sub || 'N/A' }}</p>
-      <app-operations></app-operations>
-      <button (click)="logout()">Cerrar sesión</button>
-    </ng-template>
-  `,
+  `
 })
-export class LoginComponent implements OnInit {
-  userInfo: any = null;
-  isAuthenticated = false;
-
+export class LoginComponent {
   constructor(private authService: AuthService) {}
 
-  async ngOnInit(): Promise<void> {
-    this.isAuthenticated = this.authService.isAuthenticated();
-
-    if (this.isAuthenticated) {
-      this.userInfo = await this.authService.getUserInfo();
-      console.log('Información del usuario:', this.userInfo);
-    }
-  }
-
-  login(): void {
-    this.authService.login();
-  }
-
-  logout(): void {
-    this.authService.logout();
+  login() {
+    this.authService.initiateLogin();
   }
 }

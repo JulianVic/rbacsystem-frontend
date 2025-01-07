@@ -1,33 +1,37 @@
 import { Component, OnInit } from '@angular/core';
-import { Router } from '@angular/router';
-import { AuthService } from '../auth/auth.service';
+import { ActivatedRoute, Router } from '@angular/router';
+import { AuthService } from '../auth/auth.service'; 
 
 @Component({
   selector: 'app-callback',
-  template: `
-    <div *ngIf="loading">Procesando autenticación...</div>
-    <div *ngIf="!loading && error">{{ error }}</div>
-  `,
+  template: '<div>Processing authentication...</div>'
 })
 export class CallbackComponent implements OnInit {
-  loading = true;
-  error: string | null = null;
+  constructor(
+    private route: ActivatedRoute,
+    private router: Router,
+    private authService: AuthService
+  ) {}
 
-  constructor(private authService: AuthService, private router: Router) {}
+  ngOnInit() {
+    this.route.queryParams.subscribe(params => {
+      const code = params['code'];
+      const state = params['state'];
 
-  async ngOnInit(): Promise<void> {
-    try {
-      const success = await this.authService.tryLogin();
-      if (success) {
-        this.router.navigate(['/']);
-      } else {
-        this.error = 'Error de autenticación';
+      if (code && state) {
+        this.authService.handleCallback(code, state).subscribe({
+          next: (response) => {
+            // Guarda los tokens y redirige
+            localStorage.setItem('access_token', response.access_token);
+            localStorage.setItem('id_token', response.id_token);
+            this.router.navigate(['/protected']);
+          },
+          error: (error) => {
+            console.error('Authentication error:', error);
+            this.router.navigate(['/login']);
+          }
+        });
       }
-    } catch (error) {
-      console.error('Error en callback:', error);
-      this.error = 'Error de autenticación';
-    } finally {
-      this.loading = false;
-    }
+    });
   }
 }

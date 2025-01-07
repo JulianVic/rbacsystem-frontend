@@ -1,6 +1,7 @@
+// protected.component.ts
 import { Component, OnInit } from '@angular/core';
-import { ConnectivityService } from '../services/connectivity.service';
 import { AuthService } from '../auth/auth.service';
+import { ConnectivityService } from '../services/connectivity.service';
 
 @Component({
   selector: 'app-operations',
@@ -63,71 +64,57 @@ import { AuthService } from '../auth/auth.service';
     }
   `]
 })
-export class OperationsComponent implements OnInit {
-  canResetLine = false;
-  canTestConnectivity = false;
-  canFacture = false;
-  message = '';
-  messageClass = '';
+export class ProtectedComponent implements OnInit {
+  canFacture: boolean = false;
+  canTestConnectivity: boolean = false;
+  canResetLine: boolean = false;
+  message: string = '';
+  messageClass: string = '';
+  userRoles: string[] = [];
 
-  constructor(
-    private connectivityService: ConnectivityService,
-    private authService: AuthService
-  ) {}
+  constructor(private connectivityService: ConnectivityService, private authService: AuthService) {}
 
   ngOnInit() {
-    this.checkPermissions();
+    this.checkRoles();
   }
 
-  private checkPermissions() {
-    const userInfo = this.authService.getUserInfo();
-    const roles = userInfo['urn:zitadel:iam:org:project:298723041083434695:roles'] || {};
-    const userRole = Object.keys(roles)[0];
+  checkRoles() {
+    const userInfo = this.authService.getUserRoles() || {};
+    console.log('User Info:', userInfo);
+    
+    const roles = ['facture'];
+    console.log('Roles:', roles);
 
-    this.canResetLine = ['admin', 'gerent', 'facilities'].includes(userRole);
-    this.canTestConnectivity = ['support', 'facilities', 'gerent'].includes(userRole);
-    this.canFacture = ['admin', 'gerent'].includes(userRole);
+    this.canFacture = Array.isArray(roles) && roles.includes('facture');
+    this.canTestConnectivity = Array.isArray(roles) && roles.includes('test_connectivity');
+    this.canResetLine = Array.isArray(roles) && roles.includes('reset_line');
   }
 
   resetLine() {
     this.connectivityService.resetLine().subscribe({
-      next: (response: any) => {
-        this.showMessage(response.message, 'success');
-      },
-      error: (error) => {
-        this.showMessage('Error al resetear la línea', 'error');
-      }
+      next: (response) => this.message = 'Line reset successfully',
+      error: (err) => this.message = 'Error resetting line'
     });
   }
 
   testConnectivity() {
     this.connectivityService.testConnectivity().subscribe({
-      next: (response: any) => {
-        this.showMessage(response.message, 'success');
-      },
-      error: (error) => {
-        this.showMessage('Error al probar la conectividad', 'error');
-      }
+      next: (response) => this.message = 'Connectivity test successful',
+      error: (err) => this.message = 'Error testing connectivity'
     });
   }
 
   facture() {
     this.connectivityService.facture().subscribe({
-      next: (response: any) => {
-        this.showMessage(response.message, 'success');
-      },
-      error: (error) => {
-        this.showMessage('Error al generar la factura', 'error');
-      }
+      next: (response) => this.message = 'Facture successful',
+      error: (err) => this.message = 'Error facturing'
     });
   }
 
-  private showMessage(message: string, type: 'success' | 'error') {
-    this.message = message;
-    this.messageClass = `${type}-message`;
-    setTimeout(() => {
-      this.message = '';
-      this.messageClass = '';
-    }, 3000);
-  }
-} 
+  // ngOnInit() {
+  //   this.protectedService.getProtectedData().subscribe({
+  //     next: (response) => this.data = console.log(response),
+  //     error: (err) => this.error = 'Error accessing protected data'
+  //   });
+  // }
+}
