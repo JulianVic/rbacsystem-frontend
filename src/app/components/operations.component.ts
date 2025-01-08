@@ -1,16 +1,15 @@
-// protected.component.ts
 import { Component, OnInit } from '@angular/core';
 import { AuthService } from '../auth/auth.service';
 import { ConnectivityService } from '../services/connectivity.service';
-
+import { AccessService } from '../services/access.service';
 @Component({
   selector: 'app-operations',
   template: `
     <div class="operations-container">
-      <h3>Operaciones Disponibles</h3>
-      
+      <h3>Operations Available</h3>
+
       <div class="buttons-container">
-        <button *ngIf="canResetLine" (click)="resetLine()" class="operation-button">
+        <button *ngIf="canResetLine" (click)="resetLine()" class="operation-button">      
           Reset Line
         </button>
 
@@ -70,51 +69,65 @@ export class ProtectedComponent implements OnInit {
   canResetLine: boolean = false;
   message: string = '';
   messageClass: string = '';
-  userRoles: string[] = [];
 
-  constructor(private connectivityService: ConnectivityService, private authService: AuthService) {}
+  constructor(
+    private connectivityService: ConnectivityService,
+    private authService: AuthService,
+    private accessService: AccessService
+  ) {}
 
   ngOnInit() {
     this.checkRoles();
   }
 
   checkRoles() {
-    const userInfo = this.authService.getUserRoles() || {};
-    console.log('User Info:', userInfo);
-    
-    const roles = ['facture'];
-    console.log('Roles:', roles);
+    const userRoles = this.authService.getUserRoles();
+    if (!userRoles) {
+      console.error('No se encontraron roles de usuario');
+      return;
+    }
 
-    this.canFacture = Array.isArray(roles) && roles.includes('facture');
-    this.canTestConnectivity = Array.isArray(roles) && roles.includes('test_connectivity');
-    this.canResetLine = Array.isArray(roles) && roles.includes('reset_line');
+    this.canResetLine = this.accessService.hasAccess('reset_line', userRoles);
+    this.canTestConnectivity = this.accessService.hasAccess('test_connectivity', userRoles);
+    this.canFacture = this.accessService.hasAccess('facture', userRoles);
   }
 
   resetLine() {
     this.connectivityService.resetLine().subscribe({
-      next: (response) => this.message = 'Line reset successfully',
-      error: (err) => this.message = 'Error resetting line'
+      next: () => {
+        this.message = 'Line reset successfully';
+        this.messageClass = 'success-message';
+      },
+      error: () => {
+        this.message = 'Error resetting line';
+        this.messageClass = 'error-message';
+      }
     });
   }
 
   testConnectivity() {
     this.connectivityService.testConnectivity().subscribe({
-      next: (response) => this.message = 'Connectivity test successful',
-      error: (err) => this.message = 'Error testing connectivity'
+      next: () => {
+        this.message = 'Connectivity test successful';
+        this.messageClass = 'success-message';
+      },
+      error: () => {
+        this.message = 'Error testing connectivity';
+        this.messageClass = 'error-message';
+      }
     });
   }
 
   facture() {
     this.connectivityService.facture().subscribe({
-      next: (response) => this.message = 'Facture successful',
-      error: (err) => this.message = 'Error facturing'
+      next: () => {
+        this.message = 'Facture successful';
+        this.messageClass = 'success-message';
+      },
+      error: () => {
+        this.message = 'Error facturing';
+        this.messageClass = 'error-message';
+      }
     });
   }
-
-  // ngOnInit() {
-  //   this.protectedService.getProtectedData().subscribe({
-  //     next: (response) => this.data = console.log(response),
-  //     error: (err) => this.error = 'Error accessing protected data'
-  //   });
-  // }
 }

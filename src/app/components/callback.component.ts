@@ -21,13 +21,13 @@ export class CallbackComponent implements OnInit {
       if (code && state) {
         this.authService.handleCallback(code, state).subscribe({
           next: (response) => {
-            // Guarda los tokens y redirige
+            localStorage.clear();
             localStorage.setItem('access_token', response.access_token);
             localStorage.setItem('id_token', response.id_token);
             this.router.navigate(['/protected']);
           },
           error: (error) => {
-            console.error('Authentication error:', error);
+            console.error('Error de autenticación:', error);
             this.router.navigate(['/login']);
           }
         });

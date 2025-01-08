@@ -3,6 +3,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { OAuthService } from 'angular-oauth2-oidc';
+import { AccessService } from '../services/access.service';
 
 @Injectable({
   providedIn: 'root'
@@ -13,9 +14,14 @@ export class AuthService {
   private readonly CLIENT_ID = '300384420517489408';
   private readonly REDIRECT_URI = 'http://localhost:4200/callback/';
   private readonly SCOPE = 'openid profile email urn:zitadel:iam:org:project:298723041083434695:zitadel:aud';
-  private userProfile: any;
 
-  constructor(private http: HttpClient, private oauthService: OAuthService) {}
+  private userRoles: any = null;
+
+  constructor(
+    private http: HttpClient, 
+    private oauthService: OAuthService,
+    private accessService: AccessService
+  ) {}
 
   private async generateCodeVerifier(): Promise<string> {
     const array = new Uint8Array(32);
@@ -92,10 +98,41 @@ export class AuthService {
   }
 
   public getUserRoles() {
-    if(this.userProfile) {
-      return this.userProfile.info || this.userProfile;
+    if (this.userRoles) {
+      console.log('Roles en caché:', this.userRoles);
+      return this.userRoles;
     }
-    return this.oauthService.getIdentityClaims();
+
+    const idToken = localStorage.getItem('id_token');
+    if (!idToken) {
+      console.log('No se encontró token ID');
+      return null;
+    }
+
+    try {
+      const tokenPayload = JSON.parse(atob(idToken.split('.')[1]));
+      console.log('Token payload completo:', tokenPayload);
+      
+      const roles = tokenPayload['urn:zitadel:iam:org:project:roles'];
+      const role = roles ? Object.keys(roles)[0] : null;
+      
+      this.userRoles = {
+        role: role,
+        experienceLevel: 'junior'
+      };
+      
+      console.log('Roles extraídos:', this.userRoles);
+      return this.userRoles;
+    } catch (error) {
+      console.error('Error decodificando el token:', error);
+      return null;
+    }
+  }
+
+  public hasAccess(operation: string): boolean {
+    const userRoles = this.getUserRoles();
+    if (!userRoles) return false;
+    
+    return this.accessService.hasAccess(operation, userRoles);
   }
 }
-///
