@@ -1,0 +1,83 @@
+<div class="operations-container">
+  <h3>Operations Available</h3>
+
+  <div class="buttons-container">
+    <button *ngIf="canResetLine" (click)="resetLine()" class="operation-button">
+      Reset Line
+    </button>
+
+    <button
+      *ngIf="canTestConnectivity"
+      (click)="testConnectivity()"
+      class="operation-button"
+    >
+      Test Connectivity
+    </button>
+
+    <button *ngIf="canFacture" (click)="facture()" class="operation-button">
+      Facture
+    </button>
+  </div>
+
+  <div *ngIf="message" [class]="messageClass">
+    {{ message }}
+  </div>
+
+  <div>
+    <div *ngIf="canCreateRole">
+      <button (click)="crearRol()">Crear Rol</button>
+    </div>
+
+    <div *ngIf="!canCreateRole"></div>
+  </div>
+
+  <div *ngIf="showModal" class="modal-overlay">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 class="modal-title">Crear Rol</h2>
+      </div>
+      
+      <div *ngIf="message && messageClass === 'error-message'" class="modal-error-message">
+        {{ message }}
+      </div>
+
+      <div class="form-group">
+        <label for="roleKey">Role Key *</label>
+        <input 
+          type="text" 
+          id="roleKey" 
+          [(ngModel)]="newRole.roleKey" 
+          maxlength="200"
+          required>
+      </div>
+
+      <div class="form-group">
+        <label for="displayName">Display Name *</label>
+        <input 
+          type="text" 
+          id="displayName" 
+          [(ngModel)]="newRole.displayName" 
+          maxlength="200"
+          required>
+      </div>
+
+      <div class="form-group">
+        <label for="group">Group</label>
+        <input 
+          type="text" 
+          id="group" 
+          [(ngModel)]="newRole.group" 
+          maxlength="200">
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn-cancel" (click)="closeModal()">Cancelar</button>
+        <button class="btn-create" (click)="submitRole()">Crear rol</button>
+      </div>
+    </div>
+  </div>
+
+  <div *ngIf="message && messageClass === 'success-message'" [class]="messageClass">
+    {{ message }}
+  </div>
+</div>

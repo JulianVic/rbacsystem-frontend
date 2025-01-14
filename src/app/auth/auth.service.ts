@@ -1,21 +1,24 @@
 // auth.service.ts
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { OAuthService } from 'angular-oauth2-oidc';
 import { AccessService } from '../services/access.service';
+import { authConfig } from './auth-config';
 
 @Injectable({
   providedIn: 'root'
 })
 export class AuthService {
   private readonly AUTHORIZATION_ENDPOINT = 'https://myinstance1-crzbwj.us1.zitadel.cloud/oauth/v2/authorize';
-  private readonly TOKEN_ENDPOINT = 'https://myinstance1-crzbwj.us1.zitadel.cloud/oauth/v2/token';
-  private readonly CLIENT_ID = '300384420517489408';
-  private readonly REDIRECT_URI = 'http://localhost:4200/callback/';
-  private readonly SCOPE = 'openid profile email urn:zitadel:iam:org:project:298723041083434695:zitadel:aud';
+  private readonly TOKEN_ENDPOINT = authConfig.tokenEndpoint;
+  private readonly CLIENT_ID = authConfig.clientId;
+  private readonly REDIRECT_URI = authConfig.redirectUri;
+  private readonly SCOPE = authConfig.scope;
 
   private userRoles: any = null;
+
+  private readonly ZITADEL_DOMAIN = 'myinstance1-crzbwj.us1.zitadel.cloud';
 
   constructor(
     private http: HttpClient, 
@@ -57,10 +60,10 @@ export class AuthService {
 
     const params = new URLSearchParams({
       response_type: 'code',
-      client_id: this.CLIENT_ID,
-      redirect_uri: this.REDIRECT_URI,
-      scope: this.SCOPE,
-      state: state,
+      client_id: this.CLIENT_ID ?? '',
+      redirect_uri: this.REDIRECT_URI ?? '',
+      scope: this.SCOPE ?? '',
+      state,
       code_challenge: codeChallenge,
       code_challenge_method: 'S256'
     });
@@ -79,12 +82,12 @@ export class AuthService {
     const body = new URLSearchParams({
       grant_type: 'authorization_code',
       code: code,
-      redirect_uri: this.REDIRECT_URI,
-      client_id: this.CLIENT_ID,
+      redirect_uri: this.REDIRECT_URI ?? '',
+      client_id: this.CLIENT_ID ?? '',
       code_verifier: codeVerifier!
     });
 
-    return this.http.post(this.TOKEN_ENDPOINT, body.toString(), {
+    return this.http.post<any>(this.TOKEN_ENDPOINT ?? '', body.toString(), {
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded'
       }
@@ -99,29 +102,24 @@ export class AuthService {
 
   public getUserRoles() {
     if (this.userRoles) {
-      console.log('Roles en caché:', this.userRoles);
       return this.userRoles;
     }
 
-    const idToken = localStorage.getItem('id_token');
+    const idToken = localStorage.getItem('access_token');//
     if (!idToken) {
       console.log('No se encontró token ID');
       return null;
     }
 
     try {
-      const tokenPayload = JSON.parse(atob(idToken.split('.')[1]));
-      console.log('Token payload completo:', tokenPayload);
-      
-      const roles = tokenPayload['urn:zitadel:iam:org:project:roles'];
+      const tokenPayload1 = JSON.parse(atob(idToken.split('.')[1]));      
+      const roles = tokenPayload1['urn:zitadel:iam:org:project:roles'];
       const role = roles ? Object.keys(roles)[0] : null;
       
       this.userRoles = {
         role: role,
-        experienceLevel: 'junior'
+        experienceLevel: 'junior',
       };
-      
-      console.log('Roles extraídos:', this.userRoles);
       return this.userRoles;
     } catch (error) {
       console.error('Error decodificando el token:', error);
@@ -135,4 +133,45 @@ export class AuthService {
     
     return this.accessService.hasAccess(operation, userRoles);
   }
+
+  public searchUserMemberships(userId: string) {
+    // const endpoint = `https://${this.ZITADEL_DOMAIN}/auth/v1/permissions/zitadel/me/_search`;  *endpoint de zitadel*
+    const endpoint = `http://localhost:3000/api/auth/permissions/zitadel/me`;  //endpoint de backend
+
+    return this.http.get(endpoint, { 
+      headers: new HttpHeaders({
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
+        'Accept': 'application/json'
+      })
+    });
+  }
+
+  public getUserIdFromToken(): string | null {
+    const idToken = localStorage.getItem('id_token');
+    if (!idToken) return null;
+
+    try {
+      const payload = JSON.parse(atob(idToken.split('.')[1]));
+      return payload.sub;
+    } catch (error) {
+      console.error('Error decodificando el token:', error);
+      return null;
+    }
+  }
+
+  // public hasAdminRole(memberships: any): boolean {
+  //   const adminRoles = [
+  //       'IAM_OWNER',
+  //       'IAM_ORG_MANAGER',
+  //       'ORG_OWNER',
+  //       'PROJECT_OWNER'
+  //   ];
+
+  //   return memberships?.result?.some((membership: any) => 
+  //       membership.roles?.some((role: string) => 
+  //           adminRoles.includes(role)
+  //       )
+  //   ) || false;
+  // }
 }
