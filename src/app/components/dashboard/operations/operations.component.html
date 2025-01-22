@@ -1,83 +1,494 @@
-<div class="operations-container">
-  <h3>Operations Available</h3>
-
-  <div class="buttons-container">
-    <button *ngIf="canResetLine" (click)="resetLine()" class="operation-button">
-      Reset Line
-    </button>
-
-    <button
-      *ngIf="canTestConnectivity"
-      (click)="testConnectivity()"
-      class="operation-button"
-    >
-      Test Connectivity
-    </button>
-
-    <button *ngIf="canFacture" (click)="facture()" class="operation-button">
-      Facture
+<div class="dashboard-container">
+  <div class="dashboard-header">
+    <div class="header-content">
+      <h2>Panel de Operaciones</h2>
+      <p class="subtitle">Gestiona tus operaciones desde aquí</p>
+    </div>
+    <button class="btn-logout" (click)="logout()">
+      <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
     </button>
   </div>
 
-  <div *ngIf="message" [class]="messageClass">
-    {{ message }}
-  </div>
-
-  <div>
-    <div *ngIf="canCreateRole">
-      <button (click)="crearRol()">Crear Rol</button>
+  <div class="operations-grid">
+    <!-- Tarjetas de operaciones -->
+    <div class="operation-card" *ngIf="canResetLine">
+      <div class="card-icon">
+        <i class="fas fa-sync"></i>
+      </div>
+      <h3>Reiniciar línea</h3>
+      <button (click)="resetLine()" class="btn-primary">
+        <i class="fa-solid fa-arrows-spin"></i> Reiniciar
+      </button>
     </div>
 
-    <div *ngIf="!canCreateRole"></div>
+    <div class="operation-card" *ngIf="canTestConnectivity">
+      <div class="card-icon">
+        <i class="fas fa-network-wired"></i>
+      </div>
+      <h3>Probar conexión</h3>
+      <button (click)="testConnectivity()" class="btn-primary">
+        <i class="fa-solid fa-wifi"></i>Probar
+      </button>
+    </div>
+
+    <div class="operation-card" *ngIf="canFacture">
+      <div class="card-icon">
+        <i class="fas fa-file-invoice"></i>
+      </div>
+      <h3>Facturación</h3>
+      <button (click)="facture()" class="btn-primary">
+        <i class="fas fa-plus"></i> Generar factura
+      </button>
+    </div>
+
+    <div class="operation-card" *ngIf="canCreateRole">
+      <div class="card-icon">
+        <i class="fas fa-user-shield"></i>
+      </div>
+      <h3>Gestión de roles</h3>
+      <div class="button-group">
+        <button (click)="crearRol()" class="btn-primary">
+          <i class="fas fa-plus"></i> Crear Rol
+        </button>
+        <button (click)="consultarRoles()" class="btn-secondary">
+          <i class="fas fa-list"></i> Consultar Roles
+        </button>
+      </div>
+    </div>
+
+    <div class="operation-card" *ngIf="canCreateRole">
+      <div class="card-icon">
+        <i class="fas fa-users"></i>
+      </div>
+      <h3>Gestión de usuarios</h3>
+      <div class="button-group">
+        <button (click)="crearUsuario()" class="btn-primary">
+          <i class="fas fa-plus"></i> Crear Usuario
+        </button>
+        <button (click)="consultarUsuarios()" class="btn-secondary">
+          <i class="fas fa-list"></i> Consultar Usuarios
+        </button>
+      </div>
+    </div>
   </div>
 
+  <!-- Modal para crear rol -->
   <div *ngIf="showModal" class="modal-overlay">
     <div class="modal-content">
       <div class="modal-header">
-        <h2 class="modal-title">Crear Rol</h2>
+        <h2>Crear Nuevo Rol</h2>
+        <button class="close-button" (click)="closeModal()">
+          <i class="fas fa-times"></i>
+        </button>
       </div>
       
-      <div *ngIf="message && messageClass === 'error-message'" class="modal-error-message">
-        {{ message }}
+      <div *ngIf="roleMessage" class="alert alert-error">
+        <i class="fas fa-exclamation-circle"></i>
+        {{ roleMessage }}
       </div>
 
-      <div class="form-group">
-        <label for="roleKey">Role Key *</label>
-        <input 
-          type="text" 
-          id="roleKey" 
-          [(ngModel)]="newRole.roleKey" 
-          maxlength="200"
-          required>
-      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label for="roleKey">Role Key <span class="required">*</span></label>
+          <input 
+            type="text" 
+            id="roleKey" 
+            [(ngModel)]="newRole.roleKey" 
+            maxlength="200"
+            placeholder="Ingrese el identificador del rol"
+            required>
+        </div>
 
-      <div class="form-group">
-        <label for="displayName">Display Name *</label>
-        <input 
-          type="text" 
-          id="displayName" 
-          [(ngModel)]="newRole.displayName" 
-          maxlength="200"
-          required>
-      </div>
+        <div class="form-group">
+          <label for="displayName">Display Name <span class="required">*</span></label>
+          <input 
+            type="text" 
+            id="displayName" 
+            [(ngModel)]="newRole.displayName" 
+            maxlength="200"
+            placeholder="Ingrese el nombre visible del rol"
+            required>
+        </div>
 
-      <div class="form-group">
-        <label for="group">Group</label>
-        <input 
-          type="text" 
-          id="group" 
-          [(ngModel)]="newRole.group" 
-          maxlength="200">
+        <div class="form-group">
+          <label for="group">Group</label>
+          <input 
+            type="text" 
+            id="group" 
+            [(ngModel)]="newRole.group" 
+            maxlength="200"
+            placeholder="Ingrese el grupo (opcional)">
+        </div>
       </div>
 
       <div class="modal-footer">
-        <button class="btn-cancel" (click)="closeModal()">Cancelar</button>
-        <button class="btn-create" (click)="submitRole()">Crear rol</button>
+        <button class="btn-secondary" (click)="closeModal()">
+          <i class="fas fa-times"></i> Cancelar
+        </button>
+        <button class="btn-primary" (click)="submitRole()">
+          <i class="fas fa-save"></i> Crear Rol
+        </button>
       </div>
     </div>
   </div>
 
-  <div *ngIf="message && messageClass === 'success-message'" [class]="messageClass">
-    {{ message }}
+  <!-- Modal para mensajes de operaciones -->
+  <div *ngIf="showOperationModal" class="modal-overlay">
+    <div class="modal-content modal-sm">
+      <div class="modal-header">
+        <h2>Resultado de la Operación</h2>
+        <button class="close-button" (click)="closeOperationModal()">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      
+      <div class="modal-body">
+        <div [class]="'alert ' + (messageClass === 'success-message' ? 'alert-success' : 'alert-error')">
+          <i [class]="messageClass === 'success-message' ? 'fas fa-check-circle' : 'fas fa-exclamation-circle'"></i>
+          {{ message }}
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn-primary" (click)="closeOperationModal()">
+          <i class="fas fa-check"></i> Aceptar
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal para listar roles -->
+  <div *ngIf="showRolesModal" class="modal-overlay">
+    <div class="modal-content modal-lg">
+      <div class="modal-header">
+        <h2>Roles del Sistema</h2>
+        <button class="close-button" (click)="closeRolesModal()">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      
+      <div class="modal-body">
+        <div class="roles-grid">
+          <div *ngFor="let role of roles" class="role-card">
+            <div class="role-info">
+              <h4>{{role.displayName}}</h4>
+              <p class="role-key">KeyID: {{role.roleKey}}</p>
+              <p *ngIf="role.group" class="role-group">Grupo: {{role.group}}</p>
+            </div>
+            <div class="role-actions">
+              <button class="btn-icon btn-edit" (click)="editarRol(role)">
+                <i class="fas fa-edit"></i>
+              </button>
+              <button class="btn-icon btn-delete" (click)="confirmarEliminarRol(role)">
+                <i class="fas fa-trash"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal para editar rol -->
+  <div *ngIf="showEditModal" class="modal-overlay">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>Editar Rol</h2>
+        <button class="close-button" (click)="closeEditModal()">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      
+      <div *ngIf="editMessage" class="alert" [ngClass]="editMessageClass">
+        <i class="fas fa-exclamation-circle"></i>
+        {{ editMessage }}
+      </div>
+
+      <div class="modal-body">
+        <div class="form-group">
+          <label>Role Key</label>
+          <input 
+            type="text" 
+            [value]="editingRole.roleKey"
+            disabled
+            class="input-disabled">
+        </div>
+
+        <div class="form-group">
+          <label for="editDisplayName">Display Name <span class="required">*</span></label>
+          <input 
+            type="text" 
+            id="editDisplayName" 
+            [(ngModel)]="editingRole.displayName" 
+            maxlength="200"
+            required>
+        </div>
+
+        <div class="form-group">
+          <label for="editGroup">Group</label>
+          <input 
+            type="text" 
+            id="editGroup" 
+            [(ngModel)]="editingRole.group" 
+            maxlength="200">
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn-secondary" (click)="closeEditModal()">
+          <i class="fas fa-times"></i> Cancelar
+        </button>
+        <button class="btn-primary" (click)="guardarEdicion()">
+          <i class="fas fa-save"></i> Guardar
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal para crear usuario -->
+  <div *ngIf="showUserModal" class="modal-overlay">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>Crear Nuevo Usuario</h2>
+        <button class="close-button" (click)="closeUserModal()">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      
+      <div *ngIf="userMessage" class="alert alert-error">
+        <i class="fas fa-exclamation-circle"></i>
+        {{ userMessage }}
+      </div>
+
+      <div class="modal-body">
+        <div class="form-group">
+          <label for="givenName">Nombre <span class="required">*</span></label>
+          <input 
+            type="text" 
+            id="givenName" 
+            [(ngModel)]="newUser.profile.givenName" 
+            maxlength="200"
+            required>
+        </div>
+
+        <div class="form-group">
+          <label for="familyName">Apellido <span class="required">*</span></label>
+          <input 
+            type="text" 
+            id="familyName" 
+            [(ngModel)]="newUser.profile.familyName" 
+            maxlength="200"
+            required>
+        </div>
+
+        <div class="form-group">
+          <label for="email">Email <span class="required">*</span></label>
+          <input 
+            type="email" 
+            id="email" 
+            [(ngModel)]="newUser.email.email" 
+            maxlength="200"
+            required>
+        </div>
+
+        <div class="form-group">
+          <label for="password">Contraseña <span class="required">*</span></label>
+          <input 
+            type="password" 
+            id="password" 
+            [(ngModel)]="newUser.password.password" 
+            maxlength="200"
+            required>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn-secondary" (click)="closeUserModal()">
+          <i class="fas fa-times"></i> Cancelar
+        </button>
+        <button class="btn-primary" (click)="submitUser()">
+          <i class="fas fa-save"></i> Crear Usuario
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal para listar usuarios -->
+  <div *ngIf="showUsersModal" class="modal-overlay">
+    <div class="modal-content modal-lg">
+      <div class="modal-header">
+        <h2>Usuarios del Sistema</h2>
+        <button class="close-button" (click)="closeUsersModal()">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      
+      <div class="modal-tabs">
+        <button 
+          [class]="'tab-button ' + (activeTab === 'human' ? 'active' : '')"
+          (click)="activeTab = 'human'">
+          <i class="fas fa-user"></i> Usuarios
+        </button>
+        <button 
+          [class]="'tab-button ' + (activeTab === 'machine' ? 'active' : '')"
+          (click)="activeTab = 'machine'">
+          <i class="fas fa-robot"></i> Usuarios de Servicio
+        </button>
+      </div>
+      
+      <div class="modal-body">
+        <!-- Tab de Usuarios Humanos -->
+        <div class="users-grid" *ngIf="activeTab === 'human'">
+          <div *ngFor="let user of filteredUsers('human')" class="user-card">
+            <div class="user-info">
+              <h4>{{user.human?.profile?.displayName || 'Sin nombre'}}</h4>
+              <div class="user-details">
+                <p><strong>Usuario:</strong> {{user.preferredLoginName}}</p>
+                <p><strong>Email:</strong> {{user.human?.email?.email || 'No especificado'}}</p>
+                <p><strong>Estado:</strong> 
+                  <span [class]="'status-badge ' + (user.state === 'USER_STATE_ACTIVE' ? 'status-active' : 'status-inactive')">
+                    {{user.state === 'USER_STATE_ACTIVE' ? 'Activo' : 'Inactivo'}}
+                  </span>
+                </p>
+                <p><strong>Creado:</strong> {{user.details?.changeDate | date:'dd/MM/yyyy HH:mm'}}</p>
+                <p><strong>Última modificación:</strong> {{user.details?.changeDate | date:'dd/MM/yyyy HH:mm'}}</p>
+              </div>
+            </div>
+            <div class="user-actions">
+              <button class="btn-icon btn-edit" (click)="editarUsuario(user)" *ngIf="user.human">
+                <i class="fas fa-edit"></i>
+              </button>
+              <button class="btn-icon btn-delete" (click)="confirmarEliminarUsuario(user)">
+                <i class="fas fa-trash"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab de Usuarios Máquina -->
+        <div class="users-grid" *ngIf="activeTab === 'machine'">
+          <div *ngFor="let user of filteredUsers('machine')" class="user-card">
+            <div class="user-info">
+              <h4>{{user.machine?.name || 'Sin nombre'}}</h4>
+              <div class="user-details">
+                <p><strong>Usuario:</strong> {{user.preferredLoginName}}</p>
+                <p><strong>Estado:</strong> 
+                  <span [class]="'status-badge ' + (user.state === 'USER_STATE_ACTIVE' ? 'status-active' : 'status-inactive')">
+                    {{user.state === 'USER_STATE_ACTIVE' ? 'Activo' : 'Inactivo'}}
+                  </span>
+                </p>
+                <p><strong>Creado:</strong> {{user.details?.changeDate | date:'dd/MM/yyyy HH:mm'}}</p>
+                <p><strong>Última modificación:</strong> {{user.details?.changeDate | date:'dd/MM/yyyy HH:mm'}}</p>
+              </div>
+            </div>
+            <div class="user-actions">
+              <button class="btn-icon btn-edit" (click)="editarUsuario(user)">
+                <i class="fas fa-edit"></i>
+              </button>
+              <button class="btn-icon btn-delete" (click)="confirmarEliminarUsuario(user)">
+                <i class="fas fa-trash"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal para editar usuario -->
+  <div *ngIf="showEditUserModal" class="modal-overlay">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>Editar Usuario</h2>
+        <button class="close-button" (click)="closeEditUserModal()">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      
+      <div *ngIf="userMessage" class="alert" [ngClass]="messageClass">
+        <i class="fas fa-exclamation-circle"></i>
+        {{ userMessage }}
+      </div>
+
+      <div class="modal-body">
+        <div class="form-group">
+          <label>Nombre de usuario</label>
+          <input 
+            type="text" 
+            [value]="editingUser.preferredLoginName"
+            disabled
+            class="input-disabled">
+        </div>
+
+        <div class="form-group">
+          <label for="editGivenName">Nombre <span class="required">*</span></label>
+          <input 
+            type="text" 
+            id="editGivenName" 
+            [(ngModel)]="editingUser.profile.givenName" 
+            maxlength="200"
+            required>
+        </div>
+
+        <div class="form-group">
+          <label for="editFamilyName">Apellido <span class="required">*</span></label>
+          <input 
+            type="text" 
+            id="editFamilyName" 
+            [(ngModel)]="editingUser.profile.familyName" 
+            maxlength="200"
+            required>
+        </div>
+
+        <div class="form-group">
+          <label for="editEmail">Email <span class="required">*</span></label>
+          <input 
+            type="email" 
+            id="editEmail" 
+            [(ngModel)]="editingUser.email.email" 
+            maxlength="200"
+            required>
+        </div>
+
+        <div class="form-group">
+          <label for="editGender">Género</label>
+          <select 
+            id="editGender" 
+            [(ngModel)]="editingUser.profile.gender">
+            <option [value]="Gender.GENDER_UNSPECIFIED">No especificado</option>
+            <option [value]="Gender.GENDER_FEMALE">Femenino</option>
+            <option [value]="Gender.GENDER_MALE">Masculino</option>
+            <option [value]="Gender.GENDER_DIVERSE">Diverso</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="editNickName">Apodo</label>
+          <input 
+            type="text" 
+            id="editNickName" 
+            [(ngModel)]="editingUser.profile.nickName" 
+            maxlength="200">
+        </div>
+
+        <div class="form-group">
+          <label for="editPreferredLanguage">Idioma preferido</label>
+          <input 
+            type="text" 
+            id="editPreferredLanguage" 
+            [(ngModel)]="editingUser.profile.preferredLanguage" 
+            maxlength="10">
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn-secondary" (click)="closeEditUserModal()">
+          <i class="fas fa-times"></i> Cancelar
+        </button>
+        <button class="btn-primary" (click)="guardarEdicionUsuario()">
+          <i class="fas fa-save"></i> Guardar
+        </button>
+      </div>
+    </div>
   </div>
 </div>
