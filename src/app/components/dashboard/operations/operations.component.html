@@ -561,4 +561,40 @@
       </div>
     </div>
   </div>
+
+  <!-- Modal para crear autorización -->
+  <div *ngIf="showCreateGrantModal" class="modal-overlay">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>Crear Nueva Autorización</h2>
+        <button class="close-button" (click)="closeCreateGrantModal()">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+
+      <div class="modal-body">
+        <div class="form-group">
+          <label for="userId">Usuario <span class="required">*</span></label>
+          <select 
+            id="userId" 
+            [(ngModel)]="selectedUserId" 
+            required>
+            <option value="">Seleccione un usuario</option>
+            <option *ngFor="let user of users" [value]="user.userId">
+              {{user.human ? user.human.profile.displayName : user.machine ? user.machine.name : user.username}}
+            </option>
+          </select>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn-secondary" (click)="closeCreateGrantModal()">
+          <i class="fas fa-times"></i> Cancelar
+        </button>
+        <button class="btn-primary" (click)="submitGrant()">
+          <i class="fas fa-save"></i> Crear Autorización
+        </button>
+      </div>
+    </div>
+  </div>
 </div>

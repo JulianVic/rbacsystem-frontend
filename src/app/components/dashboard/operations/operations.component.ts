@@ -582,7 +582,8 @@ export class ProtectedComponent implements OnInit {
       },
       error: (error) => {
         console.error('Error al crear autorización:', error);
-        this.message = 'Error al crear la autorización';
+        const errorMessage = error.error.message?.split('(')[0]?.trim() || 'Error al crear la autorización';
+        this.message = errorMessage;
         this.messageClass = 'alert-error';
         this.showOperationModal = true;
       }
