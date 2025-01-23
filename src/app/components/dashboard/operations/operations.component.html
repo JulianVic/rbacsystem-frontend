@@ -70,6 +70,21 @@
         </button>
       </div>
     </div>
+
+    <div class="operation-card" *ngIf="canCreateRole">
+      <div class="card-icon">
+        <i class="fas fa-key"></i>
+      </div>
+      <h3>Gestión de autorizaciones</h3>
+      <div class="button-group">
+        <button (click)="crearAutorizacion()" class="btn-primary">
+          <i class="fas fa-plus"></i> Crear Autorización
+        </button>
+        <button (click)="consultarAutorizaciones()" class="btn-secondary">
+          <i class="fas fa-list"></i> Consultar Autorizaciones
+        </button>
+      </div>
+    </div>
   </div>
 
   <!-- Modal para crear rol -->
@@ -488,6 +503,61 @@
         <button class="btn-primary" (click)="guardarEdicionUsuario()">
           <i class="fas fa-save"></i> Guardar
         </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal para listar autorizaciones -->
+  <div *ngIf="showGrantsModal" class="modal-overlay">
+    <div class="modal-content modal-lg">
+      <div class="modal-header">
+        <h2>Autorizaciones del Sistema</h2>
+        <button class="close-button" (click)="closeGrantsModal()">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      
+      <div class="modal-body">
+        <div class="table-container">
+          <table class="grants-table">
+            <thead>
+              <tr>
+                <th>Usuario</th>
+                <th>Estado</th>
+                <th>Roles</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let grant of grants">
+                <td>{{getUserDisplayName(grant)}}</td>
+                <td>
+                  <span class="status-badge" 
+                        [ngClass]="grant.state === 'USER_GRANT_STATE_ACTIVE' ? 'status-active' : 'status-inactive'">
+                    {{grant.state === 'USER_GRANT_STATE_ACTIVE' ? 'Activo' : 'Inactivo'}}
+                  </span>
+                </td>
+                <td>
+                  <div class="roles-list">
+                    <span class="role-badge" *ngFor="let role of grant.roleKeys">{{role}}</span>
+                  </div>
+                </td>
+                <td>
+                  <div class="table-actions">
+                    <button class="btn-icon btn-edit" title="Editar">
+                      <i class="fas fa-edit"></i>
+                    </button>
+                    <button class="btn-icon btn-delete" 
+                            title="Eliminar" 
+                            (click)="confirmarEliminarAutorizacion(grant)">
+                      <i class="fas fa-trash"></i>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   </div>

@@ -24,12 +24,13 @@ export class GrantsService {
       'Authorization': `Bearer ${localStorage.getItem('access_token')}`
     });
   }
-  getRoles(): Observable<RoleResponse> {
-    return this.http.get<RoleResponse>('http://localhost:3000/api/role', { headers: this.getHeaders() });
-  }
 
   getGrant(userId: string, grantId: string): Observable<any> {
     return this.http.get(`${this.apiUrl}/${userId}/grants/${grantId}`, { headers: this.getHeaders() });
+  }
+
+  createGrant(userId: string, projectId: string): Observable<any> {
+    return this.http.post(`${this.apiUrl}/${userId}/grants`, { projectId }, { headers: this.getHeaders() });
   }
 
   updateGrant(userId: string, grantId: string, data: any): Observable<any> {
@@ -38,5 +39,14 @@ export class GrantsService {
 
   removeGrant(userId: string, grantId: string): Observable<any> {
     return this.http.delete(`${this.apiUrl}/${userId}/grants/${grantId}`, { headers: this.getHeaders() });
+  }
+
+  findAll(): Observable<any> {
+    const body = {
+      projectIdQuery: {
+        projectId: "298723041083434695"
+      }
+    };
+    return this.http.post(`${this.apiUrl}/grants`, body, { headers: this.getHeaders() });
   }
 } 

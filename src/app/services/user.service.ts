@@ -6,7 +6,7 @@ export enum Gender {
   GENDER_UNSPECIFIED = 'GENDER_UNSPECIFIED',
   GENDER_FEMALE = 'GENDER_FEMALE',
   GENDER_MALE = 'GENDER_MALE',
-  GENDER_DIVERSE = 'GENDER_DIVERSE'
+  GENDER_DIVERSE = 'GENDER_DIVERSE',
 }
 
 export interface SendCodeDto {
@@ -147,7 +147,7 @@ export interface HashedPasswordDto {
 }
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class UserService {
   private apiUrl = 'http://localhost:3000/api/user';
@@ -157,24 +157,30 @@ export class UserService {
   private getHeaders(): HttpHeaders {
     return new HttpHeaders({
       'Content-Type': 'application/json',
-      'Accept': 'application/json',
-      'Authorization': `Bearer ${localStorage.getItem('access_token')}`
+      Accept: 'application/json',
+      Authorization: `Bearer ${localStorage.getItem('access_token')}`,
     });
   }
 
   createUser(user: CreateUserDto): Observable<any> {
-      return this.http.post(this.apiUrl, user, { headers: this.getHeaders() });
-    }
-    
-    getUsers(): Observable<UserResponse> {
-    return this.http.get<UserResponse>(this.apiUrl, { headers: this.getHeaders() });
+    return this.http.post(this.apiUrl, user, { headers: this.getHeaders() });
+  }
+
+  getUsers(): Observable<UserResponse> {
+    return this.http.get<UserResponse>(this.apiUrl, {
+      headers: this.getHeaders(),
+    });
   }
 
   updateUser(userId: string, user: UpdateUserDto): Observable<any> {
-    return this.http.patch(`${this.apiUrl}/${userId}`, user, { headers: this.getHeaders() });
+    return this.http.patch(`${this.apiUrl}/${userId}`, user, {
+      headers: this.getHeaders(),
+    });
   }
 
   deleteUser(userId: string): Observable<any> {
-    return this.http.delete(`${this.apiUrl}/${userId}`, { headers: this.getHeaders() });
+    return this.http.delete(`${this.apiUrl}/${userId}`, {
+      headers: this.getHeaders(),
+    });
   }
-} 
+}

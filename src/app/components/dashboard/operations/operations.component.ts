@@ -6,6 +6,7 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { Role, NewRole, RoleResponse } from '../../../services/role.service';
 import { UserService, CreateUserDto, UpdateUserDto, Gender } from '../../../services/user.service';
+import { GrantsService } from '../../../services/grants.service';
 
 @Component({
   selector: 'app-operations',
@@ -56,6 +57,10 @@ export class ProtectedComponent implements OnInit {
   };
   activeTab: 'human' | 'machine' = 'human';
   Gender = Gender;
+  showGrantsModal: boolean = false;
+  grants: any[] = [];
+  showCreateGrantModal: boolean = false;
+  selectedUserId: string = '';
 
   constructor(
     private connectivityService: ConnectivityService,
@@ -63,7 +68,8 @@ export class ProtectedComponent implements OnInit {
     private accessService: AccessService,
     private http: HttpClient,
     private router: Router,
-    private userService: UserService
+    private userService: UserService,
+    private grantsService: GrantsService
   ) {}
 
   ngOnInit() {
@@ -371,6 +377,7 @@ export class ProtectedComponent implements OnInit {
   consultarUsuarios() {
     this.userService.getUsers().subscribe({
       next: (response) => {
+        console.log(response);
         this.users = response.result.map(user => ({
           ...user,
           profile: user.profile || {},
@@ -502,5 +509,103 @@ export class ProtectedComponent implements OnInit {
     localStorage.removeItem('access_token');
     localStorage.removeItem('id_token');
     this.router.navigate(['/login']);
+  }
+
+  consultarAutorizaciones() {
+    this.grantsService.findAll().subscribe({
+      next: (response) => {
+        this.grants = response.result;
+        this.showGrantsModal = true;
+      },
+      error: (error) => {
+        console.error('Error al obtener autorizaciones:', error);
+        this.message = 'Error al obtener las autorizaciones';
+        this.messageClass = 'alert-error';
+        this.showOperationModal = true;
+      }
+    });
+  }
+
+  closeGrantsModal() {
+    this.showGrantsModal = false;
+    this.grants = [];
+  }
+
+  getUserDisplayName(entity: any): string {
+    if (entity.human) {
+      return entity.human.profile.displayName;
+    } else if (entity.machine) {
+      return entity.machine.name;
+    } else if (entity.displayName) {
+      return entity.displayName;
+    } else if (entity.userType === 'TYPE_HUMAN') {
+      return entity.displayName;
+    }
+    return entity.userName || 'Usuario sin nombre';
+  }
+
+  crearAutorizacion() {
+    this.userService.getUsers().subscribe({
+      next: (response) => {
+        this.users = response.result;
+        this.showCreateGrantModal = true;
+      },
+      error: (error) => {
+        console.error('Error al obtener usuarios:', error);
+        this.message = 'Error al obtener los usuarios';
+        this.messageClass = 'alert-error';
+        this.showOperationModal = true;
+      }
+    });
+  }
+
+  closeCreateGrantModal() {
+    this.showCreateGrantModal = false;
+    this.selectedUserId = '';
+  }
+
+  submitGrant() {
+    if (!this.selectedUserId) {
+      this.message = 'Debe seleccionar un usuario';
+      this.messageClass = 'alert-error';
+      this.showOperationModal = true;
+      return;
+    }
+
+    this.grantsService.createGrant(this.selectedUserId, this.projectId).subscribe({
+      next: () => {
+        this.closeCreateGrantModal();
+        this.consultarAutorizaciones();
+        this.message = 'Autorización creada exitosamente';
+        this.messageClass = 'alert-success';
+        this.showOperationModal = true;
+      },
+      error: (error) => {
+        console.error('Error al crear autorización:', error);
+        this.message = 'Error al crear la autorización';
+        this.messageClass = 'alert-error';
+        this.showOperationModal = true;
+      }
+    });
+  }
+
+  confirmarEliminarAutorizacion(grant: any) {
+    if (confirm(`¿Está seguro que desea eliminar la autorización de "${this.getUserDisplayName(grant)}"?`)) {
+      this.eliminarAutorizacion(grant.userId, grant.id);
+    }
+  }
+
+  eliminarAutorizacion(userId: string, grantId: string) {
+    this.grantsService.removeGrant(userId, grantId).subscribe({
+      next: () => {
+        this.grants = this.grants.filter(g => g.id !== grantId);
+      },
+      error: (error) => {
+        console.error('Error al eliminar autorización:', error);
+        this.message = 'Error al eliminar la autorización';
+        this.messageClass = 'alert-error';
+        this.showOperationModal = true;
+      }
+    });
   }
 }
