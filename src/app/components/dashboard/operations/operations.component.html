@@ -544,7 +544,9 @@
                 </td>
                 <td>
                   <div class="table-actions">
-                    <button class="btn-icon btn-edit" title="Editar">
+                    <button class="btn-icon btn-edit" 
+                            title="Editar" 
+                            (click)="editarAutorizacion(grant)">
                       <i class="fas fa-edit"></i>
                     </button>
                     <button class="btn-icon btn-delete" 
@@ -593,6 +595,55 @@
         </button>
         <button class="btn-primary" (click)="submitGrant()">
           <i class="fas fa-save"></i> Crear Autorización
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal para editar autorización -->
+  <div *ngIf="showEditGrantModal" class="modal-overlay">
+    <div class="modal-content modal-lg">
+      <div class="modal-header">
+        <h2>Editar Roles de Autorización</h2>
+        <button class="close-button" (click)="closeEditGrantModal()">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+
+      <div class="modal-body">
+        <div class="table-container">
+          <table class="grants-table">
+            <thead>
+              <tr>
+                <th style="width: 50px"></th>
+                <th>Role Key</th>
+                <th>Display Name</th>
+                <th>Group</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let role of availableRoles">
+                <td>
+                  <input 
+                    type="checkbox" 
+                    [checked]="isRoleSelected(role.key)"
+                    (change)="toggleRoleSelection(role.key)">
+                </td>
+                <td>{{role.key}}</td>
+                <td>{{role.displayName}}</td>
+                <td>{{role.group || '-'}}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn-secondary" (click)="closeEditGrantModal()">
+          <i class="fas fa-times"></i> Cancelar
+        </button>
+        <button class="btn-primary" (click)="guardarRolesAutorizacion()">
+          <i class="fas fa-save"></i> Guardar Cambios
         </button>
       </div>
     </div>

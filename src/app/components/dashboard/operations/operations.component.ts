@@ -61,6 +61,10 @@ export class ProtectedComponent implements OnInit {
   grants: any[] = [];
   showCreateGrantModal: boolean = false;
   selectedUserId: string = '';
+  showEditGrantModal: boolean = false;
+  availableRoles: any[] = [];
+  selectedRoles: string[] = [];
+  editingGrant: any = null;
 
   constructor(
     private connectivityService: ConnectivityService,
@@ -604,6 +608,77 @@ export class ProtectedComponent implements OnInit {
       error: (error) => {
         console.error('Error al eliminar autorización:', error);
         this.message = 'Error al eliminar la autorización';
+        this.messageClass = 'alert-error';
+        this.showOperationModal = true;
+      }
+    });
+  }
+
+  editarAutorizacion(grant: any) {
+    this.editingGrant = grant;
+    this.selectedRoles = grant.roleKeys || [];
+    
+    // Obtener roles disponibles
+    const token = localStorage.getItem('access_token');
+    const headers = new HttpHeaders({
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+      'Authorization': `Bearer ${token}`
+    });
+
+    this.http.get<any>('http://localhost:3000/api/role', { headers })
+      .subscribe({
+        next: (response) => {
+          this.availableRoles = response.result;
+          this.showEditGrantModal = true;
+        },
+        error: (error) => {
+          console.error('Error al obtener roles:', error);
+          this.message = 'Error al obtener los roles disponibles';
+          this.messageClass = 'alert-error';
+          this.showOperationModal = true;
+        }
+      });
+  }
+
+  closeEditGrantModal() {
+    this.showEditGrantModal = false;
+    this.editingGrant = null;
+    this.selectedRoles = [];
+    this.availableRoles = [];
+  }
+
+  toggleRoleSelection(roleKey: string) {
+    const index = this.selectedRoles.indexOf(roleKey);
+    if (index === -1) {
+      this.selectedRoles.push(roleKey);
+    } else {
+      this.selectedRoles.splice(index, 1);
+    }
+  }
+
+  isRoleSelected(roleKey: string): boolean {
+    return this.selectedRoles.includes(roleKey);
+  }
+
+  guardarRolesAutorizacion() {
+    if (!this.editingGrant) return;
+
+    this.grantsService.updateGrant(
+      this.editingGrant.userId, 
+      this.editingGrant.id, 
+      { roleKeys: this.selectedRoles }
+    ).subscribe({
+      next: () => {
+        this.closeEditGrantModal();
+        this.consultarAutorizaciones();
+        this.message = 'Roles actualizados exitosamente';
+        this.messageClass = 'alert-success';
+        this.showOperationModal = true;
+      },
+      error: (error) => {
+        console.error('Error al actualizar roles:', error);
+        this.message = 'Error al actualizar los roles';
         this.messageClass = 'alert-error';
         this.showOperationModal = true;
       }

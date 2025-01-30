@@ -34,7 +34,7 @@ export class GrantsService {
   }
 
   updateGrant(userId: string, grantId: string, data: any): Observable<any> {
-    return this.http.patch(`${this.apiUrl}/${userId}/grants/${grantId}`, data, { headers: this.getHeaders() });
+    return this.http.put(`${this.apiUrl}/${userId}/grants/${grantId}`, data, { headers: this.getHeaders() });
   }
 
   removeGrant(userId: string, grantId: string): Observable<any> {
